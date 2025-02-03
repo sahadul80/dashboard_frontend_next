@@ -4,7 +4,7 @@ import Session from "../../components/session";
 
 export default async function Dashboard() {
     return (
-        <div className="container mx-auto p-6">
+        <div className="container mx-auto">
             <Session />
             <Toaster />
         </div>

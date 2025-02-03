@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast, Toaster } from "react-hot-toast";
 
 const ManageUsers: React.FC = () => {
     const [action, setAction] = useState<string>("add");
@@ -68,7 +69,7 @@ const ManageUsers: React.FC = () => {
             );
 
             console.log("Response:", response.data);
-            alert("Action completed successfully!");
+            toast.success("Action completed successfully!");
             fetchUsers();
         } catch (err: any) {
             console.error(err);
@@ -80,6 +81,7 @@ const ManageUsers: React.FC = () => {
 
     return (
         <div className="grid grid-cols-3 gap-4 p-6">
+            <Toaster />
             {/* User List Section */}
             <div className="col-span-2 border p-4 rounded-lg bg-white overflow-y-scroll max-h-screen">
                 <h2 className="text-xl font-bold mb-4">User List</h2>

@@ -1,4 +1,6 @@
 "use client"
+import Header from "../../components/header";
+import Footer from "../../components/footer";
 import React, { ChangeEvent, FormEvent, useState } from 'react';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
@@ -40,6 +42,8 @@ export default function ResetPasswordForm() {
     return (
         <>
             <Toaster />
+      {/* Header */}
+      <Header />
         <div className="hero max-h-screen bg-base-200">
             <div className="hero-content flex-col lg:flex-row-reverse">
                 <div className="text-center lg:text-right">
@@ -72,6 +76,9 @@ export default function ResetPasswordForm() {
                 </div>
             </div>
             </div>
+
+      {/* Footer */}
+      <Footer />
         </>
     );
 }

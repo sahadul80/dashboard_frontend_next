@@ -1,4 +1,6 @@
 "use client"
+import Header from "../../components/header";
+import Footer from "../../components/footer";
 import React, { ChangeEvent, FormEvent, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
@@ -41,6 +43,8 @@ export default function ForgetPasswordForm() {
 
     return (
         <>
+      {/* Header */}
+      <Header />
         <Toaster/>
         <div className="hero max-h-screen bg-base-200">
             <div className="hero-content flex-col lg:flex-row-reverse">
@@ -66,6 +70,8 @@ export default function ForgetPasswordForm() {
                 </div>
             </div>
             </div>
+      {/* Footer */}
+      <Footer />
         </>
     );
 }

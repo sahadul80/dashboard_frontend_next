@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast, Toaster } from "react-hot-toast";
 
 const ManageProducts: React.FC = () => {
     const [action, setAction] = useState<string>("approve");
@@ -19,8 +20,8 @@ const ManageProducts: React.FC = () => {
         const fetchProducts = async () => {
             try {
                 const response = await axios.get("http://localhost:5000/admin/products");
-                const approved = response.data.filter((product: any) => product.approved);
-                const waiting = response.data.filter((product: any) => !product.approved);
+                const approved = response.data.filter((product: any) => product.isApproved === true);
+                const waiting = response.data.filter((product: any) => product.isApproved !== true);
 
                 setProducts(response.data);
                 setApprovedProducts(approved);
@@ -44,24 +45,21 @@ const ManageProducts: React.FC = () => {
             setError(null);
 
             if (action === "approve") {
-                await axios.post(`http://localhost:5000/admin/products/approve`, {
-                    id: productId,
-                });
-                alert("Product approved successfully!");
+                await axios.post("http://localhost:5000/admin/products/approve", { id: productId });
+                toast.success("Product approved successfully!");
             } else if (action === "remove") {
-                await axios.delete(`http://localhost:5000/admin/products/${productId}`);
-                alert("Product removed successfully!");
+                await axios.post("http://localhost:5000/admin/products/remove", { id: productId });
+                toast.success("Product removed successfully!");
             } else if (action === "edit") {
-                await axios.put(`http://localhost:5000/admin/products/edit`, {
-                    id: productId,
-                    ...productData,
-                });
-                alert("Product updated successfully!");
+                await axios.post("http://localhost:5000/admin/products/edit", { id: productId, ...productData });
+                toast.success("Product updated successfully!");
             }
 
             // Refresh the product list after action
             const response = await axios.get("http://localhost:5000/admin/products");
             setProducts(response.data);
+            setApprovedProducts(response.data.filter((product: any) => product.approved));
+            setWaitingProducts(response.data.filter((product: any) => !product.approved));
         } catch (err: any) {
             setError(err.response?.data?.message || "An error occurred");
         } finally {
@@ -79,6 +77,7 @@ const ManageProducts: React.FC = () => {
 
     return (
         <div className="flex max-w-6xl mx-auto mt-10 gap-6">
+            <Toaster />
             {/* Product List Section */}
             <div className="w-2/3 bg-white rounded-xl shadow-md border border-gray-200 p-4 overflow-y-auto max-h-[70vh]">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Product List</h2>
@@ -94,116 +93,82 @@ const ManageProducts: React.FC = () => {
                     />
                 </div>
 
-                {/* Waiting Products */}
+                {/* Product Tables */}
                 <div className="flex justify-between">
-                <div className="mb-2">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Waiting to be Approved</h3>
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="py-2 px-4 border-b">ID</th>
-                                <th className="py-2 px-4 border-b">Name</th>
-                                <th className="py-2 px-4 border-b">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredWaitingProducts.map((product) => (
-                                <tr key={product.id}>
-                                    <td className="py-2 px-4 border-b">{product.id}</td>
-                                    <td className="py-2 px-4 border-b">{product.name}</td>
-                                    <td className="py-2 px-4 border-b">{product.description}</td>
+                    {/* Waiting Products */}
+                    <div className="mb-2 w-1/2">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">Waiting to be Approved</h3>
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="py-2 px-4 border-b">ID</th>
+                                    <th className="py-2 px-4 border-b">Name</th>
+                                    <th className="py-2 px-4 border-b">Description</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {filteredWaitingProducts.map((product) => (
+                                    <tr key={product.id}>
+                                        <td className="py-2 px-4 border-b">{product.id}</td>
+                                        <td className="py-2 px-4 border-b">{product.name}</td>
+                                        <td className="py-2 px-4 border-b">{product.description}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
-                {/* Approved Products */}
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Approved</h3>
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="py-2 px-4 border-b">ID</th>
-                                <th className="py-2 px-4 border-b">Name</th>
-                                <th className="py-2 px-4 border-b">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredApprovedProducts.map((product) => (
-                                <tr key={product.id}>
-                                    <td className="py-2 px-4 border-b">{product.id}</td>
-                                    <td className="py-2 px-4 border-b">{product.name}</td>
-                                    <td className="py-2 px-4 border-b">{product.description}</td>
+                    {/* Approved Products */}
+                    <div className="w-1/2">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">Approved</h3>
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="py-2 px-4 border-b">ID</th>
+                                    <th className="py-2 px-4 border-b">Name</th>
+                                    <th className="py-2 px-4 border-b">Description</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {filteredApprovedProducts.map((product) => (
+                                    <tr key={product.id}>
+                                        <td className="py-2 px-4 border-b">{product.id}</td>
+                                        <td className="py-2 px-4 border-b">{product.name}</td>
+                                        <td className="py-2 px-4 border-b">{product.description}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            </div>
+
             {/* Manage Products Section */}
             <div className="w-1/3 bg-white rounded-xl shadow-md border border-gray-200 p-8">
                 <h1 className="text-2xl font-bold text-gray-800 mb-6">Manage Products</h1>
 
                 <div className="flex flex-col gap-6">
                     {/* Action Selector */}
-                    <div className="flex flex-col">
-                        <label className="font-medium text-gray-600 mb-2">Action</label>
-                        <select
-                            className="border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            value={action}
-                            onChange={(e) => setAction(e.target.value)}
-                        >
-                            <option value="approve">Approve</option>
-                            <option value="edit">Edit</option>
-                            <option value="remove">Remove</option>
-                        </select>
-                    </div>
+                    <select className="border p-3 rounded-lg" value={action} onChange={(e) => setAction(e.target.value)}>
+                        <option value="approve">Approve</option>
+                        <option value="edit">Edit</option>
+                        <option value="remove">Remove</option>
+                    </select>
 
                     {/* Product ID Input */}
-                    <div className="flex flex-col">
-                        <label className="font-medium text-gray-600 mb-2">Product ID</label>
-                        <input
-                            type="number"
-                            placeholder="Enter Product ID"
-                            className="border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            onChange={(e) => setProductId(Number(e.target.value))}
-                        />
-                    </div>
+                    <input type="number" placeholder="Enter Product ID" className="border p-3 rounded-lg" onChange={(e) => setProductId(Number(e.target.value))} />
 
-                    {/* Product Data (For Edit Action) */}
+                    {/* Product Data (For Edit) */}
                     {action === "edit" && (
-                        <div className="flex flex-col">
-                            <label className="font-medium text-gray-600 mb-2">Product Name</label>
-                            <input
-                                type="text"
-                                placeholder="Enter Product Name"
-                                className="border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                value={productData.name || ""}
-                                onChange={(e) => setProductData({ ...productData, name: e.target.value })}
-                            />
-                            <label className="font-medium text-gray-600 mb-2 mt-4">Product Description</label>
-                            <textarea
-                                placeholder="Enter Product Description"
-                                className="border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                value={productData.description || ""}
-                                onChange={(e) => setProductData({ ...productData, description: e.target.value })}
-                            />
-                        </div>
+                        <>
+                            <input type="text" placeholder="Product Name" className="border p-3 rounded-lg" value={productData.name || ""} onChange={(e) => setProductData({ ...productData, name: e.target.value })} />
+                            <textarea placeholder="Product Description" className="border p-3 rounded-lg" value={productData.description || ""} onChange={(e) => setProductData({ ...productData, description: e.target.value })} />
+                        </>
                     )}
 
-                    {/* Submit Button */}
-                    <button
-                        onClick={handleSubmit}
-                        className={`py-2 px-4 rounded-lg font-medium ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600"}`}
-                        disabled={loading}
-                    >
-                        {loading ? "Processing..." : "Submit"}
-                    </button>
+                    <button onClick={handleSubmit} className="bg-blue-500 text-white p-3 rounded-lg">{loading ? "Processing..." : "Submit"}</button>
 
-                    {/* Error Message */}
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
+                    {error && <p className="text-red-500">{error}</p>}
                 </div>
             </div>
         </div>
